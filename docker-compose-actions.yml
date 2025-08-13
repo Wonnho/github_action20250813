@@ -48,7 +48,7 @@ services:
         - type=local,dest=/tmp/.buildx-cache/frontend,mode=max
       args:
         VITE_API_URL: ${VITE_API_URL}
-    image: [도커허브 Username]/frontend:latest
+    image: wonnho/frontend:latest
     ports:
       - "80:80"
     networks:
