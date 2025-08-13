@@ -1,0 +1,101 @@
+name: Deploy Service
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/workflow.yml"
+      - "docker-compose-actions.yml"
+      - "Dockerfile"
+      - "frontend/**"
+      - "backend/**"
+
+jobs:
+  docker-build-push:
+    runs-on: ubuntu-24.04
+
+    steps:
+      # 소스 코드를 워크스페이스로 체크아웃
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      # GitHub Actions Cache 설정
+      - name: Cache Docker layers
+        uses: actions/cache@v4.2.0
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
+      # SSH 에이전트 설정 - 원격 서버 접속을 위한 SSH 키 설정
+      - name: SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # 원격 서버의 호스트 키를 known_hosts에 추가하여 SSH 연결 신뢰 설정
+      - name: Add Host Key to Known Hosts
+        run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      # Docker Buildx 설정
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # DockerHub 로그인 - 이미지 푸시를 위한 인증
+      - name: DockerHub Login
+        run: echo '${{ secrets.DOCKER_PASSWORD }}' | docker login -u '${{ secrets.DOCKER_USERNAME }}' --password-stdin
+
+      # 환경 변수 파일 생성
+      - name: Create .env file
+        run: |
+          echo "DATABASE_HOST=${{ secrets.DATABASE_HOST }}" >> .env
+          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
+          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> .env
+          echo "DATABASE_PORT=${{ secrets.DATABASE_PORT }}" >> .env
+          echo "DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}" >> .env
+          echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
+          echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
+
+      # BuildKit 빌더 생성
+      - name: Create BuildKit Builder
+        run: |
+          docker buildx create --use --name buildkit
+          docker buildx use buildkit
+
+      # Docker 이미지 빌드
+      - name: Docker Image Build
+        run: |
+          docker compose -f docker-compose-actions.yml build --build-arg BUILDKIT_INLINE_CACHE=1
+
+      # Docker 이미지 푸시
+      - name: Docker Image Push
+        run: |
+          docker compose -f docker-compose-actions.yml push
+
+      # docker-compose와 환경 변수 파일을 원격 서버로 복사
+      - name: Copy deployment files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "docker-compose-actions.yml,.env"
+          target: "~/work-directory"
+
+      # 원격 서버에서 Docker 컨테이너 실행
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd ~/work-directory
+            docker compose -f docker-compose-actions.yml down
+            docker compose -f docker-compose-actions.yml up --pull always -d
+            docker image prune -f
