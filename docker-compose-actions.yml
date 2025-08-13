@@ -27,7 +27,7 @@ services:
       # 캐시 저장할 폴더
       cache_to:
         - type=local,dest=/tmp/.buildx-cache/backend,mode=max
-    image: [도커허브 Username]/backend:latest
+    image: wonnho/backend:latest
     env_file:
       - .env
     networks:
