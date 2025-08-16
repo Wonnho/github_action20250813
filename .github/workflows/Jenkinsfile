@@ -1,9 +1,16 @@
 pipeline {
     agent any
-    stages {
-        stage('Test') {
+    
+    stages {  
+        stage('Load Environment Variables') {
             steps {
-                echo 'Hello World'
+                withCredentials([file(credentialsId: 'env-file', variable: 'ENV_FILE')]) {
+                    sh '''
+                        cp "${ENV_FILE}" .env || { echo "Failed to copy .env"; exit 1; }
+                        chmod 644 .env
+                        ls -la .env  # Verify
+                    '''
+                }
             }
         }
     }
