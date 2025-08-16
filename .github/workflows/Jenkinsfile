@@ -1,17 +1,21 @@
 pipeline {
-    agent any
-    
-    stages {  
-        stage('Load Environment Variables') {
-            steps {
-                withCredentials([file(credentialsId: 'env-file', variable: 'ENV_FILE')]) {
-                    sh '''
-                        cp "${ENV_FILE}" .env || { echo "Failed to copy .env"; exit 1; }
-                        chmod 644 .env
-                        ls -la .env  # Verify
-                    '''
-                }
-            }
+  agent any
+
+  stages {   
+    // 도커 컴포즈 실행
+    stage('Run Docker Compose') {
+      steps {
+        script {
+	        // Docker 이미지 빌드
+	        sh 'docker compose build'
+	        
+          // 기존 Docker 컨테이너 중지
+          sh 'docker compose down'
+          
+          // Docker 컨테이너 실행
+          sh 'docker compose up -d'
         }
+      }
     }
+  } 
 }
