@@ -1,16 +1,10 @@
 pipeline {
-  agent any
-
-  stages {  
-    stage('Load Environment Variables') {
-      steps {
-        script {
-          withCredentials([file(credentialsId: 'env-file', variable: 'env_file')]) {
-            sh 'cp $env_file .env'
-            sh 'chmod 644 .env'
-          }  // closes withCredentials
-        }    // closes script
-      }      // closes steps
-    }        // closes stage
-  }          // closes stages
-}            // closes pipeline
+    agent any
+    stages {
+        stage('Test') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+    }
+}
