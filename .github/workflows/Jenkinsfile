@@ -1,21 +1,27 @@
 pipeline {
-  agent any
-
-  stages {   
-    // 도커 컴포즈 실행
-    stage('Run Docker Compose') {
-      steps {
-        script {
-	        // Docker 이미지 빌드
-	        sh 'docker compose build'
-	        
-          // 기존 Docker 컨테이너 중지
-          sh 'docker compose down'
-          
-          // Docker 컨테이너 실행
-          sh 'docker compose up -d'
+    agent any
+    
+    stages {
+        stage('Run Docker Compose') {
+            steps {
+                script {
+                    // Force remove any existing containers
+                    sh 'docker compose down --remove-orphans || true'
+                    
+                    // Build images
+                    sh 'docker compose build'
+                    
+                    // Start containers with clean state
+                    sh 'docker compose up -d --force-recreate'
+                }
+            }
         }
-      }
     }
-  } 
+    
+    post {
+        always {
+            // Cleanup after build
+            sh 'docker compose down --remove-orphans || true'
+        }
+    }
 }
