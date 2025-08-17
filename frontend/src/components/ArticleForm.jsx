@@ -53,7 +53,7 @@ export default function ArticleForm({ fetchArticles }) {
           className={styles.textarea}
         />
         <button type="submit" className={styles.button}>
-          Write Article 
+          Write Article Series
         </button>
       </form>
     </div>
