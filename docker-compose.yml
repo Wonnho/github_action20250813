@@ -45,9 +45,9 @@ services:
       - "443:443"
     networks:
       - backend-connect
-		volumes:
-		  - /etc/letsencrypt/live/www.forpets.kr/fullchain.pem:/etc/letsencrypt/live/www.forpets.kr/fullchain.pem:ro
-		  - /etc/letsencrypt/live/www.forpets.kr/privkey.pem:/etc/letsencrypt/live/www.forpets.kr/privkey.pem:ro
+    volumes:
+      - /etc/letsencrypt/live/www.forpets.kr/fullchain.pem:/etc/letsencrypt/live/www.forpets.kr/fullchain.pem:ro
+      - /etc/letsencrypt/live/www.forpets.kr/privkey.pem:/etc/letsencrypt/live/www.forpets.kr/privkey.pem:ro
     depends_on:
       - backend
       - db
