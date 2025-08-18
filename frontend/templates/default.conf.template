@@ -1,0 +1,8 @@
+ # HTTP to HTTPS redirect (www.forpets.kr)
+    server {
+        listen 80;
+        server_name ${DOMAIN};
+        location / {
+            return 301 https://$host$request_url;
+        }
+    }

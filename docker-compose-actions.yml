@@ -38,8 +38,10 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL}
     image: wonnho/frontend:latest
-    environment:
-      - DOMAIN=www.forpets.kr
+    env_file:
+    - .env
+    # environment:
+    #   - DOMAIN=www.forpets.kr
     ports:
       - "80:80"
       - "443:443"
