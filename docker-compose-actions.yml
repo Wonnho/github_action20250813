@@ -23,7 +23,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_HOST: db-container
+      DATABASE_HOST: db
     networks:
       - db-connect
       - backend-connect
@@ -39,7 +39,7 @@ services:
         VITE_API_URL: ${VITE_API_URL}
     image: wonnho/frontend:latest
     env_file:
-    - .env
+      - .env
     # environment:
     #   - DOMAIN=www.forpets.kr
     ports:
