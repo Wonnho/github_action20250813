@@ -60,6 +60,13 @@ services:
 volumes:
   db-volume:
 
+# networks:
+#   db-connect:
+#   backend-connect:
+
+#update
 networks:
   db-connect:
+    external: true
   backend-connect:
+    external: true
