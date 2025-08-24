@@ -40,19 +40,13 @@ services:
     image: wonnho/frontend:latest
     env_file:
       - .env
-    # environment:
-    #   - DOMAIN=www.forpets.kr
     ports:
       - "80:80"
       - "443:443"
     networks:
       - backend-connect
     volumes:
-      # - /etc/letsencrypt/live/www.forpets.kr/fullchain.pem:/etc/letsencrypt/live/www.forpets.kr/fullchain.pem:ro
-      # - /etc/letsencrypt/live/www.forpets.kr/privkey.pem:/etc/letsencrypt/live/www.forpets.kr/privkey.pem:ro
-      #- /etc/letsencrypt/archive/www.forpets.kr/:/etc/letsencrypt/live/www.forpets.kr/:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-
+      - /etc/letsencrypt/:/etc/letsencrypt/:ro
     depends_on:
       - backend
       - db
